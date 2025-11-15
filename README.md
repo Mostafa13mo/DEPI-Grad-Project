@@ -36,9 +36,5 @@ https://www.youtube.com/watch?v=Yf8zB4dXp7I
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
----
 
-## 📄 License
-
-This project is licensed under the terms of the LICENSE file.
 
