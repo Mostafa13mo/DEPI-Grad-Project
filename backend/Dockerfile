@@ -1,30 +1,33 @@
-FROM node:latest 
+# Build stage
+FROM node:20-alpine AS builder
 
-# Install dependencies for health checks
-RUN apt-get update && \
-    apt-get install -y netcat-openbsd && \
-    rm -rf /var/lib/apt/lists/*
+# Create non-root user for security
+RUN addgroup -S app && adduser -S app -G app
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files first for better caching
+# Install only production deps
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application files
+# Copy source
 COPY . .
 
-# Set executable permissions for entrypoint
-RUN chmod +x entrypoint.sh
+# Production Stage
 
-# Expose application port
-EXPOSE 8000
+FROM node:20-alpine
 
-# Set entrypoint
-ENTRYPOINT ["./entrypoint.sh"]
+# Security hardening
+RUN addgroup -S app && adduser -S app -G app \
+    && apk --no-cache add dumb-init
 
-# Default command
-CMD ["npm", "start"]
+WORKDIR /app
+
+# Copy built app
+COPY --from=builder /app /app
+USER app
+
+EXPOSE 5000
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["node", "server.js"]
