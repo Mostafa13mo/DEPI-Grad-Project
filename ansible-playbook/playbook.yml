@@ -1,20 +1,13 @@
 ---
 - name: Install Docker, Minikube, and kubectl on Ubuntu
   hosts: all
-  become: yes
+  become: true
 
   tasks:
-
-    
-    
-    
     - name: Update apt package index
       apt:
         update_cache: yes
 
-    
-    
-    
     - name: Install required packages
       apt:
         name:
@@ -25,9 +18,6 @@
           - software-properties-common
         state: present
 
-    
-    
-    
     - name: Add Docker GPG key
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
@@ -50,30 +40,24 @@
         state: started
         enabled: yes
 
-    
-    
     - name: Download kubectl binary
       get_url:
         url: https://storage.googleapis.com/kubernetes-release/release/v1.30.0/bin/linux/amd64/kubectl
         dest: /usr/local/bin/kubectl
-        mode: '0755'
+        mode: "0755"
 
-    
     - name: Download Minikube binary
       get_url:
         url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
         dest: /usr/local/bin/minikube
-        mode: '0755'
+        mode: "0755"
 
-    
     - name: Add current user to docker group
       user:
         name: "{{ ansible_user }}"
         groups: docker
         append: yes
 
-    
     - name: Installation complete
       debug:
         msg: "Ubuntu setup completed: Docker + Minikube + kubectl installed successfully!"
-
