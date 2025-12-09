@@ -1,0 +1,15 @@
+# Grafana Service
+grafana:
+  adminUser: admin
+  adminPassword: admin123
+  service:
+    type: LoadBalancer    # علشان يدي External IP
+    port: 80
+
+# Prometheus Service
+prometheus:
+  prometheusSpec:
+    scrapeInterval: 15s
+  service:
+    type: LoadBalancer    # للوصول من برا الكلاستر
+    port: 9090

@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS = credentials('Dockerhub')
+        KUBECONFIG = credentials('kubeconfig-creds') 
     }
 
     stages {
@@ -40,7 +41,28 @@ pipeline {
                 sh 'kubectl apply -f k8s/'
             }
         }
-    }
+        stage('Install Monitoring Stack') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KCFG')]) {
+                    sh """
+                        export KUBECONFIG=$KCFG
+
+                        # إضافة Helm repo الرسمي
+                        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+                        helm repo update
+
+                        # تثبيت kube-prometheus-stack في namespace monitoring
+                        helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+                            -f monitoring/values.yaml \
+                            -n monitoring --create-namespace
+
+                        # تطبيق ServiceMonitor للـ backend
+                        kubectl apply -f monitoring/service-monitor-backend.yaml
+                    """
+                }
+            }
+        }
+
 
     post {
         success {
@@ -51,3 +73,4 @@ pipeline {
         }
     }
 }
+
